@@ -1,0 +1,367 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "months"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "5c753283-ece6-4b4a-80ac-ff4831fd0170",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1DWOwILORoBivp8xREWxTo6v-_p_p_MYPqJ0jzap5YLo",
+          "mode": "list",
+          "cachedResultName": "lending_club_segments",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DWOwILORoBivp8xREWxTo6v-_p_p_MYPqJ0jzap5YLo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 943451909,
+          "mode": "list",
+          "cachedResultName": "cursor",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DWOwILORoBivp8xREWxTo6v-_p_p_MYPqJ0jzap5YLo/edit#gid=943451909"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        192,
+        -16
+      ],
+      "id": "c347248c-b2ef-45ae-942e-3fb2f662b98b",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zDT1EsUnRnUfUDzY",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1DWOwILORoBivp8xREWxTo6v-_p_p_MYPqJ0jzap5YLo",
+          "mode": "list",
+          "cachedResultName": "lending_club_segments",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DWOwILORoBivp8xREWxTo6v-_p_p_MYPqJ0jzap5YLo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1761635711,
+          "mode": "list",
+          "cachedResultName": "segments",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DWOwILORoBivp8xREWxTo6v-_p_p_MYPqJ0jzap5YLo/edit#gid=1761635711"
+        },
+        "filtersUI": {
+          "values": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        416,
+        -16
+      ],
+      "id": "b60fff5e-3991-4d84-a0fc-05efef898ed2",
+      "name": "Get row(s) in sheet1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zDT1EsUnRnUfUDzY",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "af8458d7-8e4e-4a53-8724-09c622cd9b9a",
+              "leftValue": "={{ $json.issue_month }}",
+              "rightValue": "={{ $('Get row(s) in sheet').item.json.next_month }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        640,
+        -16
+      ],
+      "id": "32fa4632-5162-4c39-b9c8-4cf0113da46c",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "94703ec3-595b-4ac2-b265-79d3bb41a5ae",
+              "leftValue": "={{ $json.ratio }}",
+              "rightValue": 1.5,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        736,
+        -16
+      ],
+      "id": "b63486cc-3112-4567-b792-725bfb26258a",
+      "name": "Filter1"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C2QS1N6KS",
+          "mode": "list",
+          "cachedResultName": "lendingclub-risk-alerts"
+        },
+        "text": "=🚨 리스크 조기경보 - {{ $('Filter1').first().json.issue_month }}\n이상 세그먼트 {{ $json.alerts.length }}건 감지\n\n{{ $json.alerts.map(a => `• ${a.grade}/${a.purpose} — ${a.bad_rate.toFixed(1)}% (평균의 ${a.ratio.toFixed(2)}배, ${a.total_cnt}건)`).join('\\n') }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.7,
+      "position": [
+        1184,
+        -16
+      ],
+      "id": "13921800-e525-4005-bfa6-17f2331a2c0e",
+      "name": "Send a message",
+      "webhookId": "bc8d0eca-b8d9-49b2-87aa-b754e712b878",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "DFit9sUHtAblP9et",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "alerts",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        960,
+        -16
+      ],
+      "id": "185f46c0-cdd3-48f6-b681-253536740e07",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1DWOwILORoBivp8xREWxTo6v-_p_p_MYPqJ0jzap5YLo",
+          "mode": "list",
+          "cachedResultName": "lending_club_segments",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DWOwILORoBivp8xREWxTo6v-_p_p_MYPqJ0jzap5YLo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 943451909,
+          "mode": "list",
+          "cachedResultName": "cursor",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DWOwILORoBivp8xREWxTo6v-_p_p_MYPqJ0jzap5YLo/edit#gid=943451909"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": 2,
+            "next_month": "={{ new Date(new Date($('Get row(s) in sheet').item.json.next_month).setMonth(new Date($('Get row(s) in sheet').item.json.next_month).getMonth() + 1)).toISOString().split('T')[0] }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "next_month",
+              "displayName": "next_month",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1408,
+        -16
+      ],
+      "id": "1a3296c9-a0dd-4b72-a620-56b8fbba3573",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zDT1EsUnRnUfUDzY",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Filter1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "926cb5a4-3d61-4df5-b442-39aaa9a65e89",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3526fe97e3d1b81373a5f84c154ded731ebabc475ab5446507bc5f8daf0624e9"
+  },
+  "nodeGroups": [],
+  "id": "1KTNsBC1AQ0fjMuc",
+  "tags": []
+}
